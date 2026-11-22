@@ -1,0 +1,11 @@
+# Actions are pinned to commit SHAs for supply chain safety.
+# Dependabot opens a monthly PR that moves each pin to the latest release.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
