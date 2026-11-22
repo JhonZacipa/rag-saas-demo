@@ -1,0 +1,13 @@
+# Normalize line endings to LF in the repo and the working tree, so scripts and
+# Dockerfiles behave the same on Windows, Linux and CI.
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary

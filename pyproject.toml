@@ -1,0 +1,51 @@
+# Workspace root. It has no package of its own: it groups the Python members of the
+# monorepo, the shared dev tools and their configuration.
+
+[tool.uv.workspace]
+members = ["backend"]
+
+[tool.uv.sources]
+rag-saas-backend = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "rag-saas-backend",
+  "mypy>=2.4",
+  "pre-commit>=4",
+  "pytest>=9.2",
+  "ruff>=0.17",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["backend/src", "backend/tests"]
+
+[tool.ruff.lint]
+select = [
+  "E",     # pycodestyle errors
+  "W",     # pycodestyle warnings
+  "F",     # pyflakes
+  "I",     # import sorting
+  "B",     # bugbear
+  "UP",    # pyupgrade
+  "SIM",   # simplify
+  "N",     # naming
+  "ASYNC", # async pitfalls
+  "S",     # bandit security checks
+  "PT",    # pytest style
+  "RUF",   # ruff specific
+]
+
+[tool.ruff.lint.per-file-ignores]
+"backend/tests/**" = ["S101", "S105", "S106"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+files = ["backend/src", "backend/tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+addopts = "-ra --strict-markers"
