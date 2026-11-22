@@ -1,0 +1,18 @@
+[project]
+name = "rag-saas-backend"
+version = "0.1.0"
+description = "Backend of the dental clinic assistant: FastAPI + LangGraph."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "fastapi[standard]>=0.165",
+  "loguru>=0.8",
+  "psycopg[binary]>=3.3",
+  "pydantic-settings>=2.16",
+]
+
+[build-system]
+requires = ["uv_build>=0.13,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "app"
