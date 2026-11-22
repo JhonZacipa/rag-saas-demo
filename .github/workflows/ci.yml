@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+# A newer push to the same branch cancels the run that is still in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend · lint, types, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest
+
+  frontend:
+    name: Frontend · lint, types, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec biome ci
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  contract:
+    name: API contract in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: uv sync --frozen
+      - run: pnpm --dir frontend install --frozen-lockfile
+      - name: Regenerate the OpenAPI schema and the frontend types
+        run: |
+          uv run python -m app.scripts.export_openapi frontend/openapi.json
+          pnpm --dir frontend gen:api
+      - name: Fail if the committed contract is out of date
+        run: git diff --exit-code -- frontend/openapi.json frontend/src/lib/api/schema.d.ts
+
+  docker:
+    name: Docker · images and smoke test
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-only-password # pragma: allowlist secret
+      GIT_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v4
+      - name: Build backend image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: backend/Dockerfile
+          tags: rag-saas-demo-backend:latest
+          load: true
+          build-args: GIT_SHA=${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Build frontend image
+        uses: docker/build-push-action@v7
+        with:
+          context: frontend
+          tags: rag-saas-demo-frontend:latest
+          load: true
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+      - name: Start the stack
+        run: docker compose --profile app up -d --wait --no-build
+      - name: Smoke test
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8010/health/ready
+          curl --fail --silent --show-error http://127.0.0.1:3010 | grep -q "En línea"
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose --profile app logs
