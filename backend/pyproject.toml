@@ -3,6 +3,10 @@ name = "rag-saas-backend"
 version = "0.1.0"
 description = "Backend of the dental clinic assistant: FastAPI + LangGraph."
 requires-python = ">=3.13,<3.14"
+# Proprietary, see the LICENSE file at the repository root.
+license = "LicenseRef-Proprietary"
+# PyPI rejects packages with this classifier, which prevents an accidental upload.
+classifiers = ["Private :: Do Not Upload"]
 dependencies = [
   "fastapi[standard]>=0.165",
   "loguru>=0.8",

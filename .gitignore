@@ -1,27 +1,68 @@
-# Secrets and local config
+# Root ignore rules for the whole monorepo.
+# frontend/.gitignore adds the Next.js specific rules.
+# Patterns starting with "/" only match at the repository root.
+
+# --- Secrets and local configuration ---
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
 
-# Python
+# --- Python ---
 __pycache__/
 *.py[cod]
 .venv/
+venv/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
+*.egg-info/
 dist/
 build/
+.ipynb_checkpoints/
 
-# Node
+# --- Node ---
 node_modules/
+.pnpm-store/
+*.tsbuildinfo
 
-# Editors and OS
+# --- Model weights and large data ---
+# Models live in Ollama or the Hugging Face cache; large datasets would go to DVC.
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+*.pth
+/models/
+/data/
+
+# --- Generated at runtime ---
+*.log
+/logs/
+/tmp/
+evals/results/
+
+# --- Infrastructure as code (F7) ---
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# --- Editors and operating systems ---
 .idea/
 .vscode/*
 !.vscode/extensions.json
+*.swp
 .DS_Store
 Thumbs.db
-*.log
+desktop.ini

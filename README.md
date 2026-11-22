@@ -101,6 +101,10 @@ Abre http://localhost:3010. Para levantar todo en contenedores, como en producci
 - **Puertos**: el proyecto usa 8010 y 3010 porque 8000 y 3000 suelen estar ocupados por otros proyectos. Se cambian en `.env`.
 - **`127.0.0.1` en lugar de `localhost`**: `localhost` intenta primero IPv6 y, como Docker publica Postgres solo en IPv4, cada conexión esperaba el timeout antes de reintentar.
 
+## Licencia
+
+Copyright © 2026 Jhon Edward Zacipa Casas. Todos los derechos reservados. El repositorio es público como portafolio, pero no se concede licencia para usar, copiar ni distribuir el código. Los detalles están en [LICENSE](LICENSE).
+
 ## Desarrollo asistido por IA
 
 El código se construye junto con Claude. Claude genera la estructura y el código mecánico, y las piezas clave del agente se implementan como ejercicios guiados. Cada decisión técnica queda documentada en un ADR.
